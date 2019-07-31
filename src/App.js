@@ -16,6 +16,7 @@ const tokenize = (
     return (
       <span
         key={key}
+        dataKey={key}
         className={
           key === start
             ? "start"
@@ -34,6 +35,8 @@ const tokenize = (
     );
   });
 
+let key = 1;
+
 const rebuildChildren = (
   children,
   handleMouseDown,
@@ -42,7 +45,65 @@ const rebuildChildren = (
   start,
   end
 ) => {
-  console.log("hi");
+  key = 1;
+
+  return _rebuildChildren(
+    children,
+    handleMouseDown,
+    handleMouseUp,
+    handleMouseOver,
+    start,
+    end
+  );
+};
+
+const _rebuildChildren = (
+  children,
+  handleMouseDown,
+  handleMouseUp,
+  handleMouseOver,
+  start,
+  end
+) => {
+  const childrenArr = React.Children.toArray(children);
+  const result = [];
+
+  for (let i = 0; i < childrenArr.length; i++) {
+    const child = childrenArr[i];
+    if (typeof child.type === "function") {
+      // FIXME
+      result.push(child);
+    } else if (typeof child.type === "string") {
+      result.push(
+        React.cloneElement(
+          child,
+          {},
+          _rebuildChildren(
+            child.props.children,
+            handleMouseDown,
+            handleMouseUp,
+            handleMouseOver,
+            start,
+            end
+          )
+        )
+      );
+    } else if (typeof child === "string") {
+      result.push(
+        tokenize(
+          child,
+          key++,
+          handleMouseDown,
+          handleMouseUp,
+          handleMouseOver,
+          start,
+          end
+        )
+      );
+    }
+  }
+
+  return result;
 };
 
 const childrenToData = (
@@ -142,7 +203,15 @@ const DynamicTextSelector = ({ children, ...rest }) => {
   return (
     <div className={mouseDownKey ? "grabbing" : ""}>
       {children}
-      {_children}
+      {/* {_children} */}
+      {rebuildChildren(
+        children,
+        handleMouseDown,
+        handleMouseUp,
+        handleMouseOver,
+        start,
+        end
+      )}
       <button
         onClick={() => {
           setStart(null);
