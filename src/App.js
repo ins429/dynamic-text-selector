@@ -70,7 +70,7 @@ const _rebuildChildren = (
 
   for (let i = 0; i < childrenArr.length; i++) {
     const child = childrenArr[i];
-    if (typeof child.type === "function") {
+    if (typeof child.type === "function" || (child.props && child.props.skip)) {
       // FIXME
       result.push(child);
     } else if (typeof child.type === "string") {
@@ -227,12 +227,13 @@ const DynamicTextSelector = ({ children, ...rest }) => {
 const App = () => {
   return (
     <DynamicTextSelector>
-      <h1>title</h1>
+      <h1 draggable>title</h1>
       <p>
         first paragraph{" "}
         <span>
           nested span <b>and nested bold</b>
         </span>
+        <span skip>skip this</span>
       </p>
       <h3>subtitle</h3>
       <div>
